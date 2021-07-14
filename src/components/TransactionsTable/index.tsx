@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import {
   Container,
@@ -10,11 +10,22 @@ import {
   TableData,
 } from "./styles";
 
+interface Transaction {
+  id: number;
+  title: string;
+  amount: number;
+  type: string;
+  category: string;
+  createdAt: string;
+}
+
 export function TransactionsTable() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   useEffect(() => {
     api
       .get("http://localhost:3000/api/transactions")
-      .then((response) => console.log(response.data));
+      .then((response) => setTransactions(response.data.transactions));
   }, []);
 
   return (
@@ -30,18 +41,23 @@ export function TransactionsTable() {
         </TableHead>
 
         <TableBody>
-          <TableRow>
-            <TableData>Desenvolvimento de website</TableData>
-            <TableData className="deposit">R$12.000</TableData>
-            <TableData>Desenvolvimento</TableData>
-            <TableData>12/02/2021</TableData>
-          </TableRow>
-          <TableRow>
-            <TableData>Desenvolvimento de website</TableData>
-            <TableData className="withdraw">R$12.000</TableData>
-            <TableData>Desenvolvimento</TableData>
-            <TableData>12/02/2021</TableData>
-          </TableRow>
+          {transactions.map((transaction) => (
+            <TableRow key={transaction.id}>
+              <TableData>{transaction.title}</TableData>
+              <TableData className={transaction.type}>
+                {new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(transaction.amount)}
+              </TableData>
+              <TableData>{transaction.category}</TableData>
+              <TableData>
+                {new Intl.DateTimeFormat("pt-BR").format(
+                  new Date(transaction.createdAt)
+                )}
+              </TableData>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </Container>
